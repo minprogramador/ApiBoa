@@ -58,8 +58,12 @@ class Consultar
 
         if(stristr($result, 'ES FORNECIDAS</strong>')){
             return $result;
-        }else{
+        }elseif(stristr($result, 'Pessoal Gold</h2>')){
+            return true;
+        }elseif(stristr($result, 'cation: https://consumer.bvsnet.com.')){
             return false;
+        }else{
+            return 'rede';
         }
     }
 }
