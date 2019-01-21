@@ -4,18 +4,18 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+use Api\Boa\Cnpj\Logar as cnpjLogar;
+use Api\Boa\Cnpj\Consulta as cnpjConsulta;
 
-use Api\Boa\Logar;
-use Api\Boa\Check;
-use Api\Boa\Consultar;
-use Api\Boa\utils\Util;
+use Api\Boa\Cpf\Logar as cpfLogar;
+use Api\Boa\Cpf\Consulta as cpfConsulta;
+
 
 require_once 'vendor/autoload.php';
 
-$logar = new Logar();
 
 /*
-u=20007064572 s=7656 p=138.255.165.86:50095
+-u=20007064572 -s=7656 -p=138.255.165.86:50095 -t=cpf
 */
 
 $usuario = null;
@@ -24,70 +24,76 @@ $proxy   = null;
 
 if(count($argv) > 1) {
 	foreach($argv as $arv){
-		if(stristr($arv, 'u=')){
-			$usuario = str_replace('u=', '', $arv);
-		}elseif(stristr($arv, 's=')){
-			$senha = str_replace('s=', '', $arv);
-		}elseif(stristr($arv, 'p=')){
-			$proxy = str_replace('p=', '', $arv);
-		}elseif(stristr($arv, 't=')){
-			$tipo = str_replace('t=', '', $arv);
+		if(stristr($arv, '-u=')){
+			$usuario = str_replace('-u=', '', $arv);
+		}elseif(stristr($arv, '-s=')){
+			$senha = str_replace('-s=', '', $arv);
+		}elseif(stristr($arv, '-p=')){
+			$proxy = str_replace('-p=', '', $arv);
+		}elseif(stristr($arv, '-t=')){
+			$tipo = str_replace('-t=', '', $arv);
 		}
 	}
 }else{
-	//die('falta parametros...');
+	die('falta parametros...');
 }
 
 if(!isset($tipo)) {
 	$tipo = 'cpf';
 }
 
+
 if($usuario != null && $senha != null && $proxy != null){
 
-	$logar->setProxy($proxy);
-	$logar->setUsuario($usuario);
-	$logar->setSenha($senha);
+	if($tipo == 'cnpj') {
 
-	$prlogin = $logar->preLogin();
+		$Logar = new cnpjLogar();
+		$Logar->setProxy($proxy);
+		$Logar->setUsuario($usuario);
+		$Logar->setSenha($senha);
+		$prlogin = $Logar->preLogin();
 
-	if(is_array($prlogin)) {
-		
-		$cookie  = $prlogin['cookie'];
-		$ecs     = $prlogin['ecs'];
-		$encript = $prlogin['encript'];
+		if(is_array($prlogin)) {
+			
+			$Logar->setCookie($prlogin['cookie']);
+			$Logar->setEcs($prlogin['ecs']);
+			$Logar->setEncript($prlogin['encript']);
 
-		if($tipo == 'cpf') {
-			$cookie = $logar->runCpf($cookie, $ecs, $encript);
-		}elseif($tipo == 'cnpj') {
-
-
-
+			$cookie = $Logar->logar();
 		}else{
-			echo 'nenhum tipo informado =/';
-			die;
+			$cookie = false;
 		}
 
-		echo $cookie;
+	}elseif($tipo == 'cpf') {
 
+		$Logar = new cpfLogar();
+		$Logar->setProxy($proxy);
+		$Logar->setUsuario($usuario);
+		$Logar->setSenha($senha);
+		$prlogin = $Logar->preLogin();
 
-	}else{
-		echo "nao tem array\n";
-		print_r($prlogin);
+		if(is_array($prlogin)) {
+			
+			$Logar->setCookie($prlogin['cookie']);
+			$Logar->setEcs($prlogin['ecs']);
+			$Logar->setEncript($prlogin['encript']);
+
+			$cookie = $Logar->logar();
+		}else{
+			$cookie = false;
+		}
+
 	}
-	echo "\n";
-	die;
-
-	$cookie = $logar->run();
 
 	if($cookie == 'rede'){
-		echo "start=proxyoff::{$usuario}::{$proxy}=end";
+		echo "start=proxyoff::{$usuario}::{$proxy}::{$tipo}=end";
 	}elseif($cookie == 'invalida'){
-		echo "start=contaoff::{$usuario}::{$proxy}=end";
+		echo "start=contaoff::{$usuario}::{$proxy}::{$tipo}=end";
 	}
 	elseif(strlen($cookie) > 15) {
-		echo "start={$cookie}::{$usuario}::{$proxy}=end";
+		echo "start={$cookie}::{$usuario}::{$proxy}::{$tipo}=end";
 	}else{
-		echo "start=false::{$usuario}::{$proxy}=end";	
+		echo "start=false::{$usuario}::{$proxy}::{$tipo}=end";	
 	}
 }else{
 	echo "=nada a fazer=";

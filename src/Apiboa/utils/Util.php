@@ -2,12 +2,8 @@
 
 namespace Api\Boa\utils;
 
-class Util
-{
-	public function run() {
-		echo 'rodando util..';
-	}
-	
+class Util {
+    
     public function curl($url, $cookies=false, $post=false, $header=true, $referer=null, $follow=false, $proxy=false, $headers=false, $timeout=5)
     {	
         $ch = curl_init();
@@ -34,6 +30,11 @@ class Util
         
         if($headers) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        }
+
+        if(!stristr($proxy, ':')) {
+            echo "\n\n========= ops sem proxy no curl ===========\n\n";
+            die;
         }
 
         if(is_array($proxy)){

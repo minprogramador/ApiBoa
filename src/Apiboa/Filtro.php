@@ -1,7 +1,6 @@
 <?php
 
 namespace Api\Boa;
-
 use Api\Boa\utils\Util;
 
 class Filtro {
